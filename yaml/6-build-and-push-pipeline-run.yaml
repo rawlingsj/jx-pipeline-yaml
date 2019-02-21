@@ -1,0 +1,17 @@
+apiVersion: pipeline.knative.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  name: tutorial-pipeline-run
+spec:
+  serviceAccount: build-bot
+  trigger:
+    type: manual
+  resources:
+  - name: example-source
+    resourceRef:
+      name: example-source
+  - name: example-image
+    resourceRef:
+      name: example-image
+  pipelineRef:
+    name: example-pipeline

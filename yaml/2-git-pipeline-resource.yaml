@@ -1,0 +1,11 @@
+apiVersion: pipeline.knative.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: example-source
+spec:
+  type: git
+  params:
+    - name: revision
+      value: jenkins-x-yaml
+    - name: url
+      value: https://github.com/rawlingsj/jx

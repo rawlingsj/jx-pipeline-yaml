@@ -1,0 +1,10 @@
+apiVersion: pipeline.knative.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: example-image
+spec:
+  type: image
+  params:
+    - name: url
+      value: docker.io/jenkinsxio/jx:0.0.0-PREVIEW-2981-1
+#      value: jenkins-x-docker-registry.jx.svc.cluster.local:5000/cb-kubecd/pipeline-golang-sample

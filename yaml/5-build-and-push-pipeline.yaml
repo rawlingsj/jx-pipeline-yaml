@@ -1,0 +1,24 @@
+apiVersion: pipeline.knative.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: example-pipeline
+spec:
+  resources:
+  - name: example-source
+    type: git
+  - name: example-image
+    type: image
+  tasks:
+  - name: build
+    resources:
+      inputs:
+      - name: source
+        resource: example-source
+      outputs:
+      - name: builtImage
+        resource: example-image
+    taskRef:
+      name: build-docker-image-from-git-source
+  - name: test
+    taskRef:
+      name: test
