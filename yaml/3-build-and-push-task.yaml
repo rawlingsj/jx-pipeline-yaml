@@ -26,57 +26,55 @@ spec:
       - name: builtImage
         type: image
   steps:
-    # - name: jx-creds
-    #   image: jenkinsxio/jx:1.3.906
-    #   command:
-    #     - jx
-    #     - step
-    #     - git
-    #     - credentials
-    #   workingDir: "/workspace/go/src/github.com/jenkins-x/jx"
-    #   resources:
-    #     limits:
-    #       cpu: 0.2
-    #       memory: 256Mi
-    #     requests:
-    #       cpu: 0.1
-    #       memory: 128Mi
-    # - name: integration-test
-    #   image: jenkinsxio/builder-go:5a997a5f9dbfb42d5aece0d688537f7f
-    #   command:
-    #     - sh
-    #     - ./jx/scripts/ci-pre.sh
-    #   workingDir: "/workspace/source"
-    #   env:
-    #     - name: HOME
-    #       value: /workspace
-    #     - name: GOPATH
-    #       value: /workspace/go
-    #     - name: GIT_COMMITTER_EMAIL
-    #       value: jenkins-x@googlegroups.com
-    #     - name: GIT_AUTHOR_EMAIL
-    #       value: jenkins-x@googlegroups.com
-    #     - name: GIT_AUTHOR_NAME
-    #       value: jenkins-x-bot
-    #     - name: GIT_COMMITTER_NAME
-    #       value: jenkins-x-bot
-    #     - name: BRANCH_NAME
-    #       value: PR-248
-    #     - name: PULL_NUMBER
-    #       value: "248"
-    #     - name: BUILD_ID
-    #       value: "1"
-    #     # - name: GOPROXY
-    #     #   value: http://jx-app-athens-athens-proxy
-    #     - name: GOPROXY
-    #       value: http://athens-proxy.jx.cd.jenkins-x.io
-    #   resources:
-    #     limits:
-    #       cpu: 3
-    #       memory: 5120Mi
-    #     requests:
-    #       cpu: 2
-    #       memory: 4096Mi
+    - name: jx-creds
+      image: jenkinsxio/jx:1.3.906
+      command:
+        - jx
+        - step
+        - git
+        - credentials
+      workingDir: "/workspace/source"
+      resources:
+        limits:
+          cpu: 0.2
+          memory: 256Mi
+        requests:
+          cpu: 0.1
+          memory: 128Mi
+    - name: integration-test
+      image: jenkinsxio/builder-go:5a997a5f9dbfb42d5aece0d688537f7f
+      command:
+        - make
+        - test-slow-integration
+      workingDir: "/workspace/source"
+      env:
+        - name: GOPATH
+          value: /workspace/go
+        - name: GIT_COMMITTER_EMAIL
+          value: jenkins-x@googlegroups.com
+        - name: GIT_AUTHOR_EMAIL
+          value: jenkins-x@googlegroups.com
+        - name: GIT_AUTHOR_NAME
+          value: jenkins-x-bot
+        - name: GIT_COMMITTER_NAME
+          value: jenkins-x-bot
+        - name: BRANCH_NAME
+          value: PR-248
+        - name: PULL_NUMBER
+          value: "248"
+        - name: BUILD_ID
+          value: "1"
+        # - name: GOPROXY
+        #   value: http://jx-app-athens-athens-proxy
+        - name: GOPROXY
+          value: http://athens-proxy.jx.cd.jenkins-x.io
+      resources:
+        limits:
+          cpu: 3
+          memory: 5120Mi
+        requests:
+          cpu: 2
+          memory: 4096Mi
     - name: build-binary
       image: docker.io/golang:1.11.5
       command:
