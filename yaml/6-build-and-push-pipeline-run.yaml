@@ -1,9 +1,9 @@
-apiVersion: pipeline.knative.dev/v1alpha1
+apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
   name: tutorial-pipeline-run
 spec:
-  serviceAccount: build-bot
+  serviceAccount: tekton-bot
   trigger:
     type: manual
   resources:

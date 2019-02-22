@@ -1,17 +1,21 @@
-apiVersion: pipeline.knative.dev/v1alpha1
+apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
   name: build-docker-image-from-git-source
 spec:
-  serviceAccount: build-bot
   inputs:
     resources:
       - name: source
         type: git
     params:
+      - name: tag
+        description: Docker tag to use for preview images
+        default: latest
       - name: pathToDockerFile
         description: The path to the dockerfile to build
         default: /workspace/source/Dockerfile
+      - name: base
+        default: /workspace/source
       - name: pathToContext
         description:
           The build context used by Kaniko
@@ -115,19 +119,56 @@ spec:
         - /kaniko/executor
       args:
         - --dockerfile=${inputs.params.pathToDockerFile}
-        - --destination=${outputs.resources.builtImage.url}
+        - --destination=docker.io/jenkinsxio/jx:0.0.0-${inputs.params.tag}
         - --context=${inputs.params.pathToContext}
         - --cache-repo=jenkins-x-docker-registry.jx.svc.cluster.local:5000/
         - --cache=true
         - --cache-dir=/workspace
         - --skip-tls-verify-registry=jenkins-x-docker-registry.jx.svc.cluster.local:5000
-      workingDir: "/workspace/source/build"
+    - name: build-and-push-nodejs
+      image: rawlingsj/executor:dev17
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=${inputs.params.base}/Dockerfile.builder-nodejs
+        - --destination=docker.io/jenkinsxio/builder-maven:SNAPSHOT-JX-${inputs.params.tag}
+        - --context=${inputs.params.pathToContext}
+        - --cache-repo=jenkins-x-docker-registry.jx.svc.cluster.local:5000/
+        - --cache=true
+        - --cache-dir=/workspace
+        - --skip-tls-verify-registry=jenkins-x-docker-registry.jx.svc.cluster.local:5000
+    - name: build-and-push-maven
+      image: rawlingsj/executor:dev17
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=${inputs.params.base}/Dockerfile.builder-maven
+        - --destination=docker.io/jenkinsxio/builder-maven:SNAPSHOT-JX-${inputs.params.tag}
+        - --context=${inputs.params.pathToContext}
+        - --cache-repo=jenkins-x-docker-registry.jx.svc.cluster.local:5000/
+        - --cache=true
+        - --cache-dir=/workspace
+        - --skip-tls-verify-registry=jenkins-x-docker-registry.jx.svc.cluster.local:5000
+    - name: build-and-push-go
+      image: rawlingsj/executor:dev17
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=${inputs.params.base}/Dockerfile.builder-go
+        - --destination=docker.io/jenkinsxio/builder-maven:SNAPSHOT-JX-${inputs.params.tag}
+        - --context=${inputs.params.pathToContext}
+        - --cache-repo=jenkins-x-docker-registry.jx.svc.cluster.local:5000/
+        - --cache=true
+        - --cache-dir=/workspace
+        - --skip-tls-verify-registry=jenkins-x-docker-registry.jx.svc.cluster.local:5000
     - name: preview
       image: jenkinsxio/builder-go:5a997a5f9dbfb42d5aece0d688537f7f
       command:
-        - ./jx/scripts/ci-post.sh
+        - ./jx/scripts/ci.sh
       workingDir: "/workspace/source"
       env:
+        - name: PREVIEW_IMAGE_TAG
+          value: SNAPSHOT-JX-${inputs.params.tag}
         - name: HOME
           value: /workspace
         - name: GOPATH
